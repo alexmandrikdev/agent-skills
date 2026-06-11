@@ -4,9 +4,9 @@ description: >-
   Split a branch or commit range into sequential reviewable PRs using
   cherry-picks off updated main, with commit-to-branch mapping, descriptive
   branch names, per-PR title/description approval, merge checkpoints between
-  slices, and optional branch cleanup. Use when the user asks to split a branch
-  into PRs, split commits into PRs, cherry-pick commits into PRs, or invokes
-  split-to-prs-sequential.
+  slices, letter-keyed action menus at each gate, and optional branch cleanup.
+  Use when the user asks to split a branch into PRs, split commits into PRs,
+  cherry-pick commits into PRs, or invokes split-to-prs-sequential.
 disable-model-invocation: true
 ---
 
@@ -31,7 +31,96 @@ Four approval gates:
 3. **Merge** — user confirms merge before starting the next slice
 4. **Cleanup** — optional branch deletion after all slices are merged
 
+At **every gate**, end with an **action menu** — one letter per option (see [Action menus](#action-menus)). Accept a letter alone (`A`), letter + note (`R combine PR 2 and 3`), or the full phrase. Match case-insensitively.
+
 Parent agent orchestrates; each slice's git/gh work runs in a **shell subagent** with minimal context.
+
+## Action menus
+
+Assign a **single uppercase letter** to each option at every stop. Use mnemonic letters when possible. Letters are **scoped to the current gate** — the same letter may mean different things at different gates.
+
+**Format** — always append this block when waiting for the user:
+
+```markdown
+**Actions**
+- **A** — …
+- **B** — …
+```
+
+Rules:
+
+- List only actions valid **right now** (do not show merge options during plan review).
+- Primary forward action first (**A** or **M**).
+- Destructive or abort paths last, marked clearly.
+- If the user sends only a letter, treat it as that action; if ambiguous, ask once.
+- Synonyms still work: at the merge gate, **M**, **C**, **N**, or phrases like "merged", "continue", and "next" all proceed to the next slice.
+
+### Gate 1 — Plan approval
+
+```markdown
+**Actions**
+- **A** — Approve plan; start backup and first slice
+- **R** — Revise plan (describe changes to slices, order, or branch names)
+- **X** — Cancel split (no further git/gh work)
+```
+
+### Gate 2 — PR metadata approval
+
+```markdown
+**Actions**
+- **A** — Approve title and body; create PR
+- **E** — Edit metadata (provide new title, body, or edits)
+- **X** — Cancel split
+```
+
+### Gate 3 — Merge checkpoint
+
+After returning the PR URL:
+
+```markdown
+**Actions**
+- **M** — Merged; proceed to next slice (or final report if this was the last)
+- **V** — Verify merge status on GitHub
+- **W** — Not merged yet; wait (no next slice)
+- **X** — Cancel split (stop after current PR)
+```
+
+Do not start the next slice until **M** or an explicit equivalent ("merged", "continue", "next").
+
+### Gate 4 — Cleanup approval
+
+```markdown
+**Actions**
+- **Y** — Yes — delete all listed slice branches (local + remote)
+- **S** — Slice branches only — do not delete source branch
+- **R** — Revise list (say which branches to add/remove)
+- **N** — No cleanup
+```
+
+When proposing source-branch deletion, add:
+
+```markdown
+- **D** — Also delete source branch `<name>`
+```
+
+When a local branch is not fully merged and `-d` fails:
+
+```markdown
+**Actions**
+- **F** — Force delete local branch (`git branch -D`)
+- **K** — Keep branch; skip local delete (still delete remote if approved)
+```
+
+### Gate — Cherry-pick conflict
+
+When the subagent reports a conflict:
+
+```markdown
+**Actions**
+- **F** — Fixed locally; retry this slice
+- **R** — Revise plan (re-map commits or reorder slices)
+- **X** — Cancel split
+```
 
 ## Phase 1: Analyze and propose plan
 
@@ -85,7 +174,9 @@ Every slice must list commits explicitly and propose a descriptive branch name:
 
 Include a Mermaid diagram when dependencies help reviewers, even though execution is sequential off merged main.
 
-**Stop and ask for plan approval.** Do not mutate git state until approved.
+Append the Gate 1 action menu after the plan.
+
+**Stop and ask for plan approval** (Gate 1 action menu). Do not mutate git state until **A**.
 
 ### Branch naming
 
@@ -159,7 +250,9 @@ Draft title and body from cherry-picked commits and repo `git log` style:
 - [ ] ...
 ```
 
-**Stop for user approval** of title and body.
+Append the Gate 2 action menu after the draft.
+
+**Stop for user approval** of title and body (Gate 2 action menu).
 
 ### 3c. Subagent — create PR
 
@@ -176,7 +269,7 @@ Return the PR URL. Request `network`/`all` permissions for push and `gh`.
 
 ### 3d. Merge checkpoint
 
-After returning the PR URL, **stop and wait** for explicit user confirmation (e.g. "merged", "continue", "next"). Do **not** poll GitHub. Do **not** start the next slice until confirmed.
+After returning the PR URL, **stop and wait** (Gate 3 action menu). Do **not** poll GitHub unless the user chooses **V**. Do **not** start the next slice until **M** or an explicit equivalent.
 
 If the user asks, verify merge read-only:
 
@@ -215,7 +308,9 @@ Show exactly what would be removed:
 
 Default cleanup scope: **slice branches only** (every branch name from the approved plan). Offer source-branch deletion as an explicit opt-in — never delete it by default.
 
-**Stop for cleanup approval.** User can approve all, approve slice branches only, revise the list, or decline.
+Append the Gate 4 action menu (include **D** when offering source-branch deletion).
+
+**Stop for cleanup approval** (Gate 4 action menu).
 
 ### Execute cleanup (subagent)
 
@@ -254,7 +349,7 @@ Keep it short: what was deleted, what was kept, any failures.
 
 | Case | Behavior |
 |------|----------|
-| Cherry-pick conflict | Subagent stops; parent reports conflict files; user resolves or revises plan |
+| Cherry-pick conflict | Subagent stops; parent reports conflict files; show conflict action menu; retry on **F**, revise on **R** |
 | Uncommitted work | Backup ref created; only listed commits cherry-picked; uncommitted work stays on source branch |
 | Commit spans slices | Flag in plan; `git cherry-pick -n` + selective commit only if user approves |
 | Default branch not `main` | Detect via `origin/HEAD` or repo convention |

@@ -72,6 +72,11 @@ Source: `wip3` (15 commits, clean tree vs `main`)
 
 ## Execution order
 1. PR 1 → merge → PR 2 → merge → … → PR 7
+
+**Actions**
+- **A** — Approve plan; start backup and first slice
+- **R** — Revise plan (describe changes to slices, order, or branch names)
+- **X** — Cancel split (no further git/gh work)
 ```
 
 ## Example PR metadata draft (PR 1)
@@ -93,9 +98,26 @@ After subagent cherry-picks and pushes `feat/seed-foundation-tags`:
 - [ ] Run seed against empty database; verify tags import
 - [ ] Confirm migration applies cleanly on fresh checkout
 - [ ] Check `.env.example` documents required seed variables
+
+**Actions**
+- **A** — Approve title and body; create PR
+- **E** — Edit metadata (provide new title, body, or edits)
+- **X** — Cancel split
 ```
 
-User approves → subagent runs `gh pr create` → returns URL → agent waits for "merged" before starting PR 2.
+User replies **A** → subagent runs `gh pr create` → returns URL → agent shows merge checkpoint:
+
+```markdown
+PR: https://github.com/org/repo/pull/1234
+
+**Actions**
+- **M** — Merged; proceed to next slice
+- **V** — Verify merge status on GitHub
+- **W** — Not merged yet; wait
+- **X** — Cancel split
+```
+
+User replies **M** before starting PR 2.
 
 ## Example cleanup proposal (after all PRs merged)
 
@@ -115,10 +137,15 @@ User approves → subagent runs `gh pr create` → returns URL → agent waits f
 
 **Keep:** backup ref `refs/backup/pre-split-1717934400`
 
-Delete these branches? (yes / no / revise)
+**Actions**
+- **Y** — Yes — delete all listed slice branches (local + remote)
+- **S** — Slice branches only — do not delete source branch
+- **R** — Revise list (say which branches to add/remove)
+- **N** — No cleanup
+- **D** — Also delete source branch `wip3`
 ```
 
-User approves → subagent deletes local and remote slice branches → reports what was removed.
+User replies **S** → subagent deletes local and remote slice branches → reports what was removed.
 
 ## Branch naming: bad vs good
 
