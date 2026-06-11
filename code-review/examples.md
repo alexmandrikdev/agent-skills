@@ -19,7 +19,7 @@ function getUserEmail(users: User[], id: string) {
 
 ```markdown
 ### Critical
-- **`getUserEmail` — null dereference when user not found.** `Array.find` returns `undefined` if no match; accessing `.email` throws at runtime. **Fix:** guard before access:
+- **A** — **`getUserEmail` — null dereference when user not found.** `Array.find` returns `undefined` if no match; accessing `.email` throws at runtime. **Fix:** guard before access:
 
 \`\`\`typescript
 const user = users.find((u) => u.id === id)
@@ -52,7 +52,7 @@ if (order.status === 'shipped') {
 
 ```markdown
 ### Major
-- **`handleOrderUpdate` — duplicated notify-and-log pattern.** Two blocks differ only in status string and template name; a third status will likely copy-paste again. **Fix:** extract `notifyOrderStatus(order, status, template)`.
+- **A** — **`handleOrderUpdate` — duplicated notify-and-log pattern.** Two blocks differ only in status string and template name; a third status will likely copy-paste again. **Fix:** extract `notifyOrderStatus(order, status, template)`.
 
 ## Refactoring opportunities
 
@@ -76,7 +76,7 @@ def calc(d, t):
 
 ```markdown
 ### Suggestions
-- **`calc` — unclear parameter names reduce readability.** `d` and `t` require reading the body to understand. Names like `discount` and `is_premium_customer` (or an enum) would match project naming elsewhere. **Fix:** rename parameters; no behavior change.
+- **A** — **`calc` — unclear parameter names reduce readability.** `d` and `t` require reading the body to understand. Names like `discount` and `is_premium_customer` (or an enum) would match project naming elsewhere. **Fix:** rename parameters; no behavior change.
 ```
 
 ---
@@ -94,13 +94,13 @@ The endpoint structure matches existing handlers and validation is present. One 
 ## Findings
 
 ### Major
-- **`src/routes/orders.ts:42`** — No ownership check on `userId` param. Other routes in this file call `requireOwner(req, userId)` before mutating. **Fix:** add `requireOwner(req, order.userId)` before `createOrder`.
+- **A** — **`src/routes/orders.ts:42`** — No ownership check on `userId` param. Other routes in this file call `requireOwner(req, userId)` before mutating. **Fix:** add `requireOwner(req, order.userId)` before `createOrder`.
 
 ### Minor
-- **`src/routes/orders.ts:58`** — Magic number `5000` for timeout. **Fix:** use `ORDER_TIMEOUT_MS` constant like `src/routes/payments.ts:12`.
+- **B** — **`src/routes/orders.ts:58`** — Magic number `5000` for timeout. **Fix:** use `ORDER_TIMEOUT_MS` constant like `src/routes/payments.ts:12`.
 
 ### Suggestions
-- **`src/routes/orders.ts:30-55`** — Handler mixes validation, DB write, and email dispatch. **Fix:** consider extracting `dispatchOrderConfirmation` when a third notification type is added.
+- **C** — **`src/routes/orders.ts:30-55`** — Handler mixes validation, DB write, and email dispatch. **Fix:** consider extracting `dispatchOrderConfirmation` when a third notification type is added.
 
 ## Refactoring opportunities
 

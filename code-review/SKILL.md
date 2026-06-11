@@ -85,6 +85,13 @@ Mark lower-confidence items explicitly (e.g. "likely — needs runtime confirmat
 
 Return the structured report below. Omit empty severity sections. Include at least one refactoring opportunity when duplication or smell exists.
 
+**Letter each finding** so the user can reference it in follow-up messages (e.g. "fix B", "explain finding D"):
+
+1. Assign letters **A**, **B**, **C**, … in report order: all **Critical** first, then **Major**, **Minor**, **Suggestions**
+2. Prefix every finding bullet with its letter: `**A** — …`
+3. Do not letter refactoring opportunities, positive notes, or open questions — only items under **Findings**
+4. If there is only one finding, still use **A**
+
 ## Quick checklist
 
 | Category | What to look for |
@@ -115,16 +122,16 @@ Use this template:
 ## Findings
 
 ### Critical
-- **[file:line]** — [issue]. [why it matters]. **Fix:** [concrete suggestion].
+- **A** — **[file:line]** — [issue]. [why it matters]. **Fix:** [concrete suggestion].
 
 ### Major
-- ...
+- **B** — ...
 
 ### Minor
-- ...
+- **C** — ...
 
 ### Suggestions
-- ...
+- **D** — ...
 
 ## Refactoring opportunities
 
@@ -150,6 +157,7 @@ Omit sections with no findings (e.g. skip "Critical" if none). Keep "Positive no
 - Propose the **smallest correct fix**; suggest larger refactors only when smell or duplication warrants it
 - Balance criticism with positive notes when the code is genuinely well-written
 - Do not run `git commit`, push, or modify code unless the user explicitly asks
+- When the user later cites a finding letter (e.g. "fix B", "more on finding A"), resolve it against the lettered findings from the most recent review in the conversation
 
 ## Examples
 
