@@ -3,7 +3,8 @@ name: code-review
 description: >-
   Reviews provided code for bugs, errors, security issues, best practices,
   code smells, duplication, and refactoring opportunities. Reads surrounding
-  files and project conventions when needed. Use when the user invokes
+  files and project conventions when needed. When no code or scope is provided,
+  reviews staged changes (git diff --cached) by default. Use when the user invokes
   /code-review, attaches this skill, or asks for a structured code review.
 disable-model-invocation: true
 ---
@@ -20,13 +21,16 @@ Identify what was provided:
 
 | Input type | How to treat it |
 |------------|-----------------|
+| **No input (default)** | Review **staged changes** — run `git diff --cached` from the repo root |
 | Pasted snippet | Review the snippet; note missing imports/types |
 | Single file | Review the file; read full file if only a selection was highlighted |
 | Git diff | Review changed lines; use `git diff` and `git log` for intent |
 | PR / branch | Review the full diff from base branch |
 | Directory | Review listed files; do not scan the entire repo unprompted |
 
-If scope is unclear, ask one short question before reviewing.
+**Default scope:** When the user invokes `/code-review`, attaches this skill, or asks for a review without pasting code, naming files, or specifying a diff, treat the review scope as staged changes. Do not ask what to review first — gather the staged diff and proceed.
+
+If the staging area is empty, say so in one sentence and stop unless the user then asks to review unstaged changes, a branch, or something else. For any other unclear scope (not the default case), ask one short question before reviewing.
 
 ### 2. Define scope
 
@@ -54,7 +58,7 @@ git diff
 git log -5 --oneline
 ```
 
-Use staged diff when present; otherwise full working tree diff.
+When scope is the **default (no input)**, review only `git diff --cached`. For other git-scoped reviews, prefer staged diff when present; otherwise use the full working tree diff or branch diff as appropriate to the requested scope.
 
 ### 4. Analyze
 
