@@ -1,5 +1,5 @@
 ---
-name: clean-up
+name: clean-up-code
 description: >-
   Cleans code cosmetically and applies safe behavior-neutral logic
   simplifications. Use when the user asks to clean up code, staged changes,
