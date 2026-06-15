@@ -1,17 +1,17 @@
 ---
 name: clean-up
 description: >-
-  Clean up code cosmetically and apply safe behavior-neutral logic
+  Cleans code cosmetically and applies safe behavior-neutral logic
   simplifications. Use when the user asks to clean up code, staged changes,
   tidy the staging area, polish diffs, clean up specific files, remove
   redundant steps, simplify logic, or improve what is staged before committing.
-  Defaults to staged changes when no files are specified; works on any
-  referenced files when the user names them or attaches them.
+  Defaults to staged hunks when no files are specified; works on any referenced
+  or attached files.
 ---
 
 # Clean Up Code
 
-Improve target code cosmetically and simplify redundant logic without touching git staging or altering observable behavior. Apply confident behavior-neutral logic cleanups; report uncertain cases for user review. The user reviews edits and stages manually.
+Improve target code cosmetically and simplify redundant logic without touching git staging or altering observable behavior. Apply confident behavior-neutral logic cleanups; report uncertain cases for user review.
 
 ## Scope
 
@@ -47,8 +47,8 @@ If nothing is staged when using the default scope, say so and ask whether to wor
 
 **Logic (behavior-neutral only):**
 
-- Dead code removal when provably unreachable
-- Redundant intermediate steps (duplicate validation, double fetch/compute, no-op re-assignment)
+- Dead code removal
+- Redundant intermediate steps
 - Collapsed no-op sequences
 - Obsolete branches, helpers, or workarounds left behind by recent edits
 - Unused variables, imports, helpers, or parameters tied to removed logic
@@ -156,13 +156,9 @@ Omit empty sections. If no logic changes were made or reported, say so briefly.
 
 → Default scope. Read `git diff --cached`. Apply cosmetic edits and confident logic simplifications (e.g. remove unreachable branch left by refactor). Report uncertain redundancies (e.g. old API call kept alongside new one). Do not `git add`.
 
-**User:** "Clean up @src/utils/format.ts and @src/utils/parse.ts"
+**User:** "Clean up @src/utils/format.ts and @src/utils/parse.ts" (or "the files in `src/handlers/`")
 
-→ Explicit scope. Read both files in full. Apply cosmetic and logic cleanup throughout each file. Use `git diff` on those paths only for context, not to limit edits to changed lines. Do not `git add`.
-
-**User:** "Clean up the files in src/handlers/"
-
-→ Explicit scope. Clean up every file under `src/handlers/`.
+→ Explicit scope. Read each referenced file in full. Apply cosmetic and logic cleanup throughout. Use `git diff` on those paths only for context, not to limit edits to changed lines. Do not `git add`.
 
 **User:** "Clean up the staged changes and fix the null check bug."
 
@@ -170,7 +166,7 @@ Omit empty sections. If no logic changes were made or reported, say so briefly.
 
 **User:** "Polish what's staged and commit."
 
-→ Follow this skill for cleanup (no staging). Commit only because the user explicitly asked; still prefer not staging unless their commit workflow requires it.
+→ Follow this skill for cleanup (no staging). Commit only because the user explicitly asked; do not `git add`.
 
 **Uncertain logic case:** target change adds a new API call but keeps the old call "just in case."
 
