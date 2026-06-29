@@ -107,6 +107,26 @@ Detailed prompts per review dimension. Read during step 4 (Analyze). Skip sectio
 
 ---
 
+## Overengineering
+
+Complexity beyond what the change requires. Compare with the nearest similar code in the project before flagging — some codebases are more abstract by convention.
+
+- **Unneeded abstraction**: interface, base class, or factory with only one implementation and no second caller planned?
+- **Premature generalization**: configurable options, plugin hooks, or strategy pattern for two fixed cases?
+- **Thin wrappers**: one- or two-line helpers that add indirection without reuse or testability benefit?
+- **Speculative future-proofing**: code paths, feature flags, or extension points with no current consumer?
+- **Heavy dependency**: new library or framework for something the stdlib or existing stack already covers?
+- **Excessive defensive code**: validation, fallbacks, or error branches for states that cannot occur in this context?
+- **Over-typed or over-modeled**: domain types, DTO layers, or mappers where a plain struct or dict would match nearby code?
+- **Config explosion**: env vars, YAML, or settings objects for values that never change across environments?
+- **Indirection chains**: hard to follow call stacks (handler → service → manager → helper) for straightforward logic?
+
+**Severity guide:** usually **Minor** or **Suggestion** unless the extra layers hide bugs, block changes, or clearly diverge from project style (then **Major**). **Fix:** propose the smallest correct shape — inline, delete the layer, or match the simpler pattern used elsewhere in the repo.
+
+**When you see:** a new abstraction — find the closest existing implementation and ask whether this change could use the same level of simplicity.
+
+---
+
 ## Duplication
 
 - Copy-pasted blocks differing only in variable names?
@@ -140,8 +160,7 @@ Detailed prompts per review dimension. Read during step 4 (Analyze). Skip sectio
 - Comments explaining *what* instead of *why* (or outdated comments)?
 - Missing docs on non-obvious business rules or invariants?
 - TODO/FIXME without ticket reference or owner?
-- Over-engineering: abstraction layers with only one implementation?
-- Under-engineering: hack with no note explaining the constraint?
+- Under-engineering: hack with no note explaining the constraint? (See also [Overengineering](#overengineering) for the opposite.)
 
 ---
 

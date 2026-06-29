@@ -2,16 +2,17 @@
 name: code-review
 description: >-
   Reviews provided code for bugs, errors, security issues, best practices,
-  code smells, duplication, and refactoring opportunities. Reads surrounding
-  files and project conventions when needed. When no code or scope is provided,
-  reviews staged changes (git diff --cached) by default. Use when the user invokes
-  /code-review, attaches this skill, or asks for a structured code review.
+  code smells, duplication, overengineering, and refactoring opportunities.
+  Reads surrounding files and project conventions when needed. When no code or
+  scope is provided, reviews staged changes (git diff --cached) by default. Use
+  when the user invokes /code-review, attaches this skill, or asks for a
+  structured code review.
 disable-model-invocation: true
 ---
 
 # Code Review
 
-Structured review of provided code. Identify bugs, smells, duplication, and refactoring options. Return a severity-rated report.
+Structured review of provided code. Identify bugs, smells, duplication, overengineering, and refactoring options. Return a severity-rated report.
 
 ## Workflow
 
@@ -107,6 +108,7 @@ Return the structured report below. Omit empty severity sections. Include at lea
 | API & contracts | Breaking changes, wrong signatures, inconsistent return shapes |
 | Best practices | Framework idioms, clear naming, appropriate abstraction level |
 | Code smells | Long functions, deep nesting, god objects, magic numbers |
+| Overengineering | Unneeded abstractions, premature generalization, heavy deps for simple tasks |
 | Duplication | Copy-paste logic, parallel implementations, repeated conditionals |
 | Testing | Missing cases, brittle tests, untested branches |
 | Maintainability | Dead code, unclear dependencies, missing docs on non-obvious logic |
@@ -159,6 +161,7 @@ Omit sections with no findings (e.g. skip "Critical" if none). Keep "Positive no
 - Do not flag style that formatter/linter already enforces
 - Separate definite bugs from hypotheses; label confidence
 - Propose the **smallest correct fix**; suggest larger refactors only when smell or duplication warrants it
+- Flag overengineering when complexity exceeds what the change needs; do not recommend ripping out abstractions the project already relies on elsewhere
 - Balance criticism with positive notes when the code is genuinely well-written
 - Do not run `git commit`, push, or modify code unless the user explicitly asks
 - When the user later cites a finding letter (e.g. "fix B", "more on finding A"), resolve it against the lettered findings from the most recent review in the conversation

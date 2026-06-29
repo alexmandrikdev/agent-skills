@@ -81,7 +81,42 @@ def calc(d, t):
 
 ---
 
-## Example 4: Full mini-report
+## Example 4: Suggestion — overengineering
+
+**Input:**
+
+```typescript
+interface NotificationStrategy {
+  send(recipient: string, payload: Record<string, unknown>): Promise<void>
+}
+
+class EmailNotificationStrategy implements NotificationStrategy {
+  async send(recipient: string, payload: Record<string, unknown>) {
+    await mailer.send(recipient, payload.subject as string, payload.body as string)
+  }
+}
+
+class NotificationService {
+  constructor(private strategy: NotificationStrategy) {}
+  async notify(recipient: string, subject: string, body: string) {
+    await this.strategy.send(recipient, { subject, body })
+  }
+}
+
+// usage (only caller in the diff)
+await new NotificationService(new EmailNotificationStrategy()).notify(user.email, 'Welcome', text)
+```
+
+**Finding:**
+
+```markdown
+### Suggestions
+- **A** — **`NotificationService` / `NotificationStrategy` — abstraction without a second implementation.** The diff adds an interface, strategy class, and service wrapper for a single email call. Sibling handlers in `src/notifications/` call `mailer.send` directly. **Fix:** inline the `mailer.send` call unless a second channel (SMS, push) is in the same PR or immediately planned.
+```
+
+---
+
+## Example 5: Full mini-report
 
 **Input:** A 30-line API handler diff adding a new POST endpoint.
 
