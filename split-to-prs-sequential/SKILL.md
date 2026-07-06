@@ -100,10 +100,12 @@ Do not start the next slice until **M** or an explicit equivalent ("merged", "co
 When proposing source-branch deletion, add:
 
 ```markdown
-- **D** — Also delete source branch `<name>`
+- **D** — Also force delete source branch `<name>` (local `git branch -D` + remote)
 ```
 
-When a local branch is not fully merged and `-d` fails:
+Choosing **D** counts as explicit approval to force-delete the source/WIP branch locally. Do not use `-d` for that branch or stop to ask for **F** — the WIP tip is usually not fully merged after cherry-picks.
+
+When a **slice** branch is not fully merged and `-d` fails:
 
 ```markdown
 **Actions**
@@ -301,7 +303,7 @@ Show exactly what would be removed:
 - `feat/photos-legacy-seed`
 - ...
 
-**Also delete source branch?** `wip3` — yes / no (default: no)
+**Also delete source branch?** `wip3` — yes / no (default: no; **D** force-deletes locally)
 
 **Keep:** backup ref `refs/backup/pre-split-*` unless user asks to remove it
 ```
@@ -318,10 +320,12 @@ After approval, launch a shell subagent with the approved branch list and repo p
 
 For each branch:
 
-1. Delete local (if exists): `git branch -d <branch>` — if not fully merged, stop and report; use `-D` only if user explicitly approves force delete
+1. Delete local (if exists):
+   - **Source/WIP branch** (only when user chose **D**): `git branch -D <branch>` — force delete; do not try `-d` first
+   - **Slice branches**: `git branch -d <branch>` — if not fully merged, stop and report; use `-D` only if user explicitly approves force delete via the conflict menu (**F**)
 2. Delete remote (if exists): `git push origin --delete <branch>`
 
-If user approved source branch deletion, include it in the same pass.
+If user approved source branch deletion (**D**), include the source branch in the same pass and always force-delete it locally.
 
 To remove backup ref (only when user explicitly asks):
 
@@ -355,7 +359,8 @@ Keep it short: what was deleted, what was kept, any failures.
 | Default branch not `main` | Detect via `origin/HEAD` or repo convention |
 | Branch name collision | Check `git branch -a` before push; append scope suffix or `-2` if taken |
 | Branch already deleted remotely | Skip remote delete; report as already gone |
-| Local branch not fully merged | Stop; ask user before `-D` |
+| Local slice branch not fully merged | Stop; ask user before `-D` (**F** / **K**) |
+| Source/WIP branch delete (**D**) | Always `git branch -D` locally; remote `--delete` as usual |
 
 ## Examples
 
