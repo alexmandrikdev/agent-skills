@@ -33,6 +33,26 @@ Identify what was provided:
 
 If the staging area is empty, say so in one sentence and stop unless the user then asks to review unstaged changes, a branch, or something else. For any other unclear scope (not the default case), ask one short question before reviewing.
 
+### 1a. Check for optional commit notes
+
+The user may provide extra review context in a temporary notes file. After determining scope, inspect `git status --short` for a staged or untracked helper file with one of these names:
+
+- `.commit-notes.md`
+- `commit-notes.md`
+- `COMMIT_NOTES.md`
+- `.git-commit-notes.md`
+
+If more than one exists, prefer the filename specified by any project rule. Otherwise prefer the first staged match at the repository root.
+
+When a commit notes file exists:
+
+1. Read it and treat its contents as authoritative context for intent, scope, breaking changes, migration or deploy steps, risks, and what to emphasize.
+2. Cross-check claims against the diff — verify breaking changes are reflected in code and flag gaps (e.g. notes say migration required but diff has none).
+3. Do not treat notes as proof that code is correct; still analyze the diff independently.
+4. Mention briefly in the summary when commit notes shaped the review focus.
+
+Do not unstage or modify commit notes files — that belongs to the commit workflow.
+
 ### 2. Define scope
 
 Review the **provided code first**. Expand only when needed to judge correctness or conventions:
@@ -54,12 +74,15 @@ When the snippet alone is insufficient:
 4. For git diffs, run in parallel from repo root:
 
 ```bash
+git status --short
 git diff --cached
 git diff
 git log -5 --oneline
 ```
 
 When scope is the **default (no input)**, review only `git diff --cached`. For other git-scoped reviews, prefer staged diff when present; otherwise use the full working tree diff or branch diff as appropriate to the requested scope.
+
+5. If step 1a found a commit notes file, read it before analyzing. Use its **Emphasize** and **Breaking Changes** sections to prioritize checklist dimensions (especially API & contracts, errors & edge cases, security).
 
 ### 4. Analyze
 
@@ -123,7 +146,7 @@ Use this template:
 # Code Review: [scope]
 
 ## Summary
-[2–4 sentences: overall quality, main risks, merge recommendation]
+[2–4 sentences: overall quality, main risks, merge recommendation. Note if commit notes informed the focus.]
 
 ## Findings
 
